@@ -1,0 +1,7 @@
+{
+    "name": "my-comic-books",
+    "author": "Tomasz Najbar <najbartomasz@gmail.com>",
+    "devDependencies": {
+        "lerna": "4.0.0"
+    }
+}

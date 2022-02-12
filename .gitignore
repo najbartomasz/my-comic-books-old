@@ -1,0 +1,23 @@
+# Jest
+coverage/
+
+# Lerna
+lerna-debug.log
+
+# Node.js
+node_modules/
+
+# Project
+.bin/
+*.tgz
+
+# Sonarqube
+.scannerwork/
+sonarqube-analysis.sh
+
+# TypeScript
+dist/
+
+# Visual Studio Code
+.settings/
+.vscode/

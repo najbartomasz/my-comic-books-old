@@ -1,0 +1,104 @@
+{
+    "extends": "./node.eslintrc",
+    "rules": {
+        "id-denylist": "off",
+        "max-nested-callbacks": [
+            "error",
+            5
+        ],
+        "max-statements": "off",
+        "newline-per-chained-call": [
+            "error",
+            {
+                "ignoreChainWithDepth": 3
+            }
+        ],
+        "quote-props":  [
+            "error",
+            "consistent-as-needed",
+            {
+                "keywords": false,
+                "unnecessary": false
+            }
+        ],
+        "@typescript-eslint/ban-ts-comment": "off",
+        "@typescript-eslint/explicit-function-return-type": [
+            "error",
+            {
+                "allowExpressions": false,
+                "allowTypedFunctionExpressions": true,
+                "allowHigherOrderFunctions": false,
+                "allowDirectConstAssertionInArrowFunctions": false,
+                "allowConciseArrowFunctionExpressionsStartingWithVoid": false
+            }
+        ],
+        "@typescript-eslint/naming-convention": [
+            "error",
+            {
+                "selector": [
+                    "objectLiteralProperty"
+                ],
+                "format": [ "camelCase", "PascalCase" ],
+                "leadingUnderscore": "allowDouble",
+                "trailingUnderscore": "forbid"
+            }
+        ],
+        "@typescript-eslint/no-magic-numbers": "off",
+        "@typescript-eslint/no-shadow": "off",
+        "@typescript-eslint/unbound-method": "off",
+
+        // JEST
+        "jest/consistent-test-it": [
+            "error",
+            {
+                "fn": "test",
+                "withinDescribe": "test"
+            }
+        ],
+        "jest/expect-expect": "error",
+        "jest/max-nested-describe": [
+            "error",
+            {
+                "max": 3
+            }
+        ],
+        "jest/no-alias-methods": "error",
+        "jest/no-commented-out-tests": "error",
+        "jest/no-conditional-expect": "error",
+        "jest/no-deprecated-functions": "error",
+        "jest/no-disabled-tests": "error",
+        "jest/no-done-callback": "error",
+        "jest/no-duplicate-hooks": "error",
+        "jest/no-export": "error",
+        "jest/no-focused-tests": "error",
+        "jest/no-hooks": "off",
+        "jest/no-identical-title": "error",
+        "jest/no-if": "error",
+        "jest/no-interpolation-in-snapshots": "error",
+        "jest/no-jasmine-globals": "error",
+        "jest/no-jest-import": "error",
+        "jest/no-mocks-import": "error",
+        "jest/no-restricted-matchers": "error",
+        "jest/no-standalone-expect": "error",
+        "jest/no-test-prefixes": "error",
+        "jest/no-test-return-statement": "error",
+        "jest/prefer-called-with": "error",
+        "jest/prefer-expect-assertions": "off",
+        "jest/prefer-expect-resolves": "error",
+        "jest/prefer-hooks-on-top": "error",
+        "jest/prefer-lowercase-title": "off",
+        "jest/prefer-spy-on": "error",
+        "jest/prefer-strict-equal": "error",
+        "jest/prefer-to-be": "error",
+        "jest/prefer-to-contain": "error",
+        "jest/prefer-to-have-length": "error",
+        "jest/prefer-todo": "error",
+        "jest/require-hook": "error",
+        "jest/require-to-throw-message": "error",
+        "jest/require-top-level-describe": "error",
+        "jest/valid-describe-callback": "error",
+        "jest/valid-expect": "error",
+        "jest/valid-expect-in-promise": "error",
+        "jest/valid-title": "error"
+    }
+}
