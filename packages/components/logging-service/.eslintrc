@@ -1,0 +1,4 @@
+{
+    "extends": "../../../configs/eslint/node.eslintrc",
+    "parser": "@typescript-eslint/parser"
+}

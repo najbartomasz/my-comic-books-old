@@ -5,7 +5,8 @@
     }
   },
   "packages": [
-    "packages/*"
+    "packages/components/*",
+    "packages/libs/*"
   ],
   "version": "independent"
 }
