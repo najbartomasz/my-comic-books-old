@@ -5,5 +5,5 @@ export interface LogEntry {
     logLevel: LogLevel;
     loggerName: string;
     message: string;
-    error?: object | string | unknown | undefined;
+    error?: unknown;
 }

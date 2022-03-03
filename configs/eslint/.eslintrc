@@ -276,7 +276,13 @@
         "no-bitwise": "error",
         "no-caller": "error",
         "no-case-declarations": "error",
-        "no-confusing-arrow": "error",
+        "no-confusing-arrow": [
+            "error",
+            {
+                "allowParens": true,
+                "onlyOneSimpleParam": false
+            }
+        ],
         "no-console": "error",
         "no-delete-var": "error",
         "no-div-regex": "error",
@@ -763,10 +769,11 @@
             "error",
             "last"
         ],
-        "space-before-blocks": [
-            "error",
-            "always"
-        ],
+        "space-before-blocks": "off",
+        // [
+        //     "error",
+        //     "always"
+        // ],
         "space-before-function-paren": "off",
         // [
         //     "error",
@@ -1095,6 +1102,7 @@
                 ]
             }
         ],
+        "@typescript-eslint/no-redundant-type-constituents": "error",
         "@typescript-eslint/no-require-imports": "error",
         "@typescript-eslint/no-this-alias": [
             "error",
@@ -1144,6 +1152,7 @@
         "@typescript-eslint/no-unsafe-call": "error",
         "@typescript-eslint/no-unsafe-member-access": "error",
         "@typescript-eslint/no-unsafe-return": "error",
+        "@typescript-eslint/no-useless-empty-export": "error",
         "@typescript-eslint/no-var-requires": "error",
         "@typescript-eslint/non-nullable-type-assertion-style": "error",
         "@typescript-eslint/prefer-as-const": "error",
@@ -1475,6 +1484,7 @@
                 "omitLastInOneLineBlock": false
             }
         ],
+        "@typescript-eslint/space-before-blocks": "error",
         "@typescript-eslint/space-before-function-paren": [ // "space-before-function-paren": "off"
             "error",
             {
