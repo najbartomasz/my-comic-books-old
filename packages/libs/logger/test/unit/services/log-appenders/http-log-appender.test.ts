@@ -3,76 +3,74 @@ import { when } from 'jest-when';
 
 import type { ConsoleLogAppender } from '../../../../src/services/log-appenders/console-log-appender';
 import type { LogEntry } from '../../../../src/types/log-entry';
-
+import type { LogLevel } from '../../../../src/definitions/log-level';
 
 import { HttpLogAppender } from '../../../../src/services/log-appenders/http-log-appender';
-
-jest.mock('../../../../src/services/log-appenders/console-log-appender');
 
 describe('HttpLogAppender', () => {
     const flushPromise = async (): Promise<void> => Promise.resolve();
 
     const testUri: string = 'http://my-logging-service.com/';
+    const testLogEntry: Readonly<LogEntry> = {
+        timestamp: 'Today', logLevel: 'SomeLevel' as LogLevel, loggerName: 'TestLogger', message: 'Test message.'
+    };
 
-    let mockLogEntryInstance: LogEntry;
     let mockPost: jest.Mock;
 
     let httpLogAppender: HttpLogAppender;
 
     beforeEach(() => {
-        mockLogEntryInstance = mock<LogEntry>();
         mockPost = jest.fn();
     });
 
     describe('when console log appender is not defined', () => {
         beforeEach(() => {
-            when(mockPost).calledWith(testUri, mockLogEntryInstance).mockResolvedValueOnce(undefined);
+            when(mockPost).calledWith(testUri, testLogEntry).mockResolvedValueOnce(undefined);
 
             httpLogAppender = new HttpLogAppender(testUri, mockPost);
         });
 
         test('should send info log', () => {
             // Given, When
-            httpLogAppender.info(mockLogEntryInstance);
+            httpLogAppender.info(testLogEntry);
 
             // Then
             expect(mockPost).toHaveBeenCalledTimes(1);
-            expect(mockPost).toHaveBeenCalledWith(testUri, mockLogEntryInstance);
+            expect(mockPost).toHaveBeenCalledWith(testUri, testLogEntry);
         });
 
         test('should send warn log', () => {
             // Given, When
-            httpLogAppender.warn(mockLogEntryInstance);
+            httpLogAppender.warn(testLogEntry);
 
             // Then
             expect(mockPost).toHaveBeenCalledTimes(1);
-            expect(mockPost).toHaveBeenCalledWith(testUri, mockLogEntryInstance);
+            expect(mockPost).toHaveBeenCalledWith(testUri, testLogEntry);
         });
 
         test('should send error log', () => {
             // Given, When
-            httpLogAppender.error(mockLogEntryInstance);
+            httpLogAppender.error(testLogEntry);
 
             // Then
             expect(mockPost).toHaveBeenCalledTimes(1);
-            expect(mockPost).toHaveBeenCalledWith(testUri, mockLogEntryInstance);
+            expect(mockPost).toHaveBeenCalledWith(testUri, testLogEntry);
         });
     });
 
     describe('when console log appender is defined', () => {
         const testError: string = 'Test error.';
-        let expectedLogEntry: LogEntry;
+        const expectedLogEntry: Readonly<LogEntry> = {
+            timestamp: testLogEntry.timestamp,
+            logLevel: testLogEntry.logLevel,
+            loggerName: testLogEntry.loggerName,
+            message: `Failed to send the following message: ${testLogEntry.message}`,
+            error: testError
+        };
 
         let mockConsoleLogAppenderInstance: ConsoleLogAppender;
 
         beforeEach(() => {
-            expectedLogEntry = {
-                timestamp: mockLogEntryInstance.timestamp,
-                logLevel: mockLogEntryInstance.logLevel,
-                loggerName: mockLogEntryInstance.loggerName,
-                message: `Failed to send the following message: ${mockLogEntryInstance.message}`,
-                error: testError
-            };
             mockConsoleLogAppenderInstance = mock<ConsoleLogAppender>();
 
             httpLogAppender = new HttpLogAppender(testUri, mockPost, mockConsoleLogAppenderInstance);
@@ -80,10 +78,10 @@ describe('HttpLogAppender', () => {
 
         test('should print error message to debug console when sending info log failed', async () => {
             // Given
-            when(mockPost).calledWith(testUri, mockLogEntryInstance).mockRejectedValueOnce(testError);
+            when(mockPost).calledWith(testUri, testLogEntry).mockRejectedValueOnce(testError);
 
             // When
-            httpLogAppender.info(mockLogEntryInstance);
+            httpLogAppender.info(testLogEntry);
             await flushPromise();
 
             // Then
@@ -94,10 +92,10 @@ describe('HttpLogAppender', () => {
 
         test('should print error message to debug console when sending warn log failed', async () => {
             // Given
-            when(mockPost).calledWith(testUri, mockLogEntryInstance).mockRejectedValueOnce(testError);
+            when(mockPost).calledWith(testUri, testLogEntry).mockRejectedValueOnce(testError);
 
             // When
-            httpLogAppender.warn(mockLogEntryInstance);
+            httpLogAppender.warn(testLogEntry);
             await flushPromise();
 
             // Then
@@ -108,10 +106,10 @@ describe('HttpLogAppender', () => {
 
         test('should print error message to debug console when sending error log failed', async () => {
             // Given
-            when(mockPost).calledWith(testUri, mockLogEntryInstance).mockRejectedValueOnce(testError);
+            when(mockPost).calledWith(testUri, testLogEntry).mockRejectedValueOnce(testError);
 
             // When
-            httpLogAppender.error(mockLogEntryInstance);
+            httpLogAppender.error(testLogEntry);
             await flushPromise();
 
             // Then

@@ -13,6 +13,7 @@ describe('LogAppenderAggregator', () => {
     const testMessage: string = 'Test message';
 
     let expectedLogEntry: LogEntry;
+
     let mockLogAppenderInstance1: LogAppender;
     let mockLogAppenderInstance2: LogAppender;
 

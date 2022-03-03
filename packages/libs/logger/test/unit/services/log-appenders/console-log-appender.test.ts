@@ -1,24 +1,25 @@
-import { mock } from 'jest-mock-extended';
 import { when } from 'jest-when';
 
 import type { LogAppender } from '../../../../src/types/log-appender';
 import type { LogEntry } from '../../../../src/types/log-entry';
+import type { LogLevel } from '../../../../src/definitions/log-level';
 import type { LogMessage } from '../../../../src/types/log-message';
 
 import { ConsoleLogAppender } from '../../../../src/services/log-appenders/console-log-appender';
 
 describe('ConsoleLogAppender', () => {
     const expectedMessage: LogMessage = 'Expected message.';
+    const testLogEntry: Readonly<LogEntry> = {
+        timestamp: 'Today', logLevel: 'SomeLevel' as LogLevel, loggerName: 'TestLogger', message: 'Test message.'
+    };
 
     let mockFormatLogEntry: jest.Mock;
-    let mockLogEntryInstance: LogEntry;
 
     let consoleLogger: LogAppender;
 
     beforeEach(() => {
         mockFormatLogEntry = jest.fn();
-        mockLogEntryInstance = mock<LogEntry>();
-        when(mockFormatLogEntry).calledWith(mockLogEntryInstance).mockReturnValueOnce(expectedMessage);
+        when(mockFormatLogEntry).calledWith(testLogEntry).mockReturnValueOnce(expectedMessage);
 
         consoleLogger = new ConsoleLogAppender(mockFormatLogEntry);
     });
@@ -28,7 +29,7 @@ describe('ConsoleLogAppender', () => {
         const spyConsoleInfo: jest.SpyInstance = jest.spyOn(console, 'info').mockImplementation();
 
         // When
-        consoleLogger.info(mockLogEntryInstance);
+        consoleLogger.info(testLogEntry);
 
         // Then
         expect(spyConsoleInfo).toHaveBeenCalledTimes(1);
@@ -40,7 +41,7 @@ describe('ConsoleLogAppender', () => {
         const spyConsoleWarn: jest.SpyInstance = jest.spyOn(console, 'warn').mockImplementation();
 
         // When
-        consoleLogger.warn(mockLogEntryInstance);
+        consoleLogger.warn(testLogEntry);
 
         // Then
         expect(spyConsoleWarn).toHaveBeenCalledTimes(1);
@@ -52,7 +53,7 @@ describe('ConsoleLogAppender', () => {
         const spyConsoleError: jest.SpyInstance = jest.spyOn(console, 'error').mockImplementation();
 
         // When
-        consoleLogger.error(mockLogEntryInstance);
+        consoleLogger.error(testLogEntry);
 
         // Then
         expect(spyConsoleError).toHaveBeenCalledTimes(1);

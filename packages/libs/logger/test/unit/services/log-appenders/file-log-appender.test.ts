@@ -3,21 +3,23 @@ import { when } from 'jest-when';
 
 import type { ConsoleLogAppender } from '../../../../src/services/log-appenders/console-log-appender';
 import type { LogEntry } from '../../../../src/types/log-entry';
+import type { LogLevel } from '../../../../src/definitions/log-level';
 
 import { FileLogAppender } from '../../../../src/services/log-appenders/file-log-appender';
 
 describe('FileLogAppender', () => {
     const testFilePath: string = '/test/file/path';
+    const testLogEntry: Readonly<LogEntry> = {
+        timestamp: 'Today', logLevel: 'SomeLevel' as LogLevel, loggerName: 'TestLogger', message: 'Test message.'
+    };
 
     let mockFormatLogEntry: jest.Mock;
     let mockWriteFile: jest.Mock;
-    let mockLogEntryInstance: LogEntry;
 
     let fileLogAppender: FileLogAppender;
 
     beforeEach(() => {
         mockWriteFile = jest.fn();
-        mockLogEntryInstance = mock<LogEntry>();
     });
 
     describe('when formatted log entry is string', () => {
@@ -25,7 +27,7 @@ describe('FileLogAppender', () => {
 
         beforeEach(() => {
             mockFormatLogEntry = jest.fn();
-            when(mockFormatLogEntry).calledWith(mockLogEntryInstance).mockReturnValueOnce(expectedMessage);
+            when(mockFormatLogEntry).calledWith(testLogEntry).mockReturnValueOnce(expectedMessage);
             when(mockWriteFile).calledWith(testFilePath, expectedMessage).mockResolvedValueOnce(undefined);
 
             fileLogAppender = new FileLogAppender(testFilePath, mockFormatLogEntry, mockWriteFile);
@@ -33,7 +35,7 @@ describe('FileLogAppender', () => {
 
         test('should write info message to file', () => {
             // Given, When
-            fileLogAppender.info(mockLogEntryInstance);
+            fileLogAppender.info(testLogEntry);
 
             // Then
             expect(mockWriteFile).toHaveBeenCalledTimes(1);
@@ -42,7 +44,7 @@ describe('FileLogAppender', () => {
 
         test('should write warn message to file', () => {
             // Given, When
-            fileLogAppender.warn(mockLogEntryInstance);
+            fileLogAppender.warn(testLogEntry);
 
             // Then
             expect(mockWriteFile).toHaveBeenCalledTimes(1);
@@ -51,7 +53,7 @@ describe('FileLogAppender', () => {
 
         test('should write error message to file', () => {
             // Given, When
-            fileLogAppender.error(mockLogEntryInstance);
+            fileLogAppender.error(testLogEntry);
 
             // Then
             expect(mockWriteFile).toHaveBeenCalledTimes(1);
@@ -60,13 +62,11 @@ describe('FileLogAppender', () => {
     });
 
     describe('when formatted log entry is object', () => {
-        let expectedMessage: string;
+        const expectedMessage: string = JSON.stringify(testLogEntry);
 
         beforeEach(() => {
-            expectedMessage = JSON.stringify(mockLogEntryInstance);
-
             mockFormatLogEntry = jest.fn();
-            when(mockFormatLogEntry).calledWith(mockLogEntryInstance).mockReturnValueOnce(mockLogEntryInstance);
+            when(mockFormatLogEntry).calledWith(testLogEntry).mockReturnValueOnce(testLogEntry);
             when(mockWriteFile).calledWith(testFilePath, expectedMessage).mockResolvedValueOnce(undefined);
 
             fileLogAppender = new FileLogAppender(testFilePath, mockFormatLogEntry, mockWriteFile);
@@ -74,7 +74,7 @@ describe('FileLogAppender', () => {
 
         test('should write info message to file', () => {
             // Given, When
-            fileLogAppender.info(mockLogEntryInstance);
+            fileLogAppender.info(testLogEntry);
 
             // Then
             expect(mockWriteFile).toHaveBeenCalledTimes(1);
@@ -83,7 +83,7 @@ describe('FileLogAppender', () => {
 
         test('should write warn message to file', () => {
             // Given, When
-            fileLogAppender.warn(mockLogEntryInstance);
+            fileLogAppender.warn(testLogEntry);
 
             // Then
             expect(mockWriteFile).toHaveBeenCalledTimes(1);
@@ -92,7 +92,7 @@ describe('FileLogAppender', () => {
 
         test('should write error message to file', () => {
             // Given, When
-            fileLogAppender.error(mockLogEntryInstance);
+            fileLogAppender.error(testLogEntry);
 
             // Then
             expect(mockWriteFile).toHaveBeenCalledTimes(1);
@@ -105,22 +105,19 @@ describe('FileLogAppender', () => {
 
         const testError: Error = new Error('Test error');
         const expectedMessage: string = 'Expected message.';
-
-        let expectedLogEntry: LogEntry;
+        const expectedLogEntry: Readonly<LogEntry> = {
+            timestamp: testLogEntry.timestamp,
+            logLevel: testLogEntry.logLevel,
+            loggerName: testLogEntry.loggerName,
+            message: `Failed to send the following message: ${testLogEntry.message}`,
+            error: testError
+        };
 
         let mockConsoleLogAppenderInstance: ConsoleLogAppender;
 
         beforeEach(() => {
-            expectedLogEntry = {
-                timestamp: mockLogEntryInstance.timestamp,
-                logLevel: mockLogEntryInstance.logLevel,
-                loggerName: mockLogEntryInstance.loggerName,
-                message: `Failed to send the following message: ${mockLogEntryInstance.message}`,
-                error: testError
-            };
-
             mockFormatLogEntry = jest.fn();
-            when(mockFormatLogEntry).calledWith(mockLogEntryInstance).mockReturnValueOnce(expectedMessage);
+            when(mockFormatLogEntry).calledWith(testLogEntry).mockReturnValueOnce(expectedMessage);
             when(mockWriteFile).calledWith(testFilePath, expectedMessage).mockRejectedValueOnce(testError);
             mockConsoleLogAppenderInstance = mock<ConsoleLogAppender>();
 
@@ -129,7 +126,7 @@ describe('FileLogAppender', () => {
 
         test('should write error message to debug console when writing info message to file failed', async () => {
             // Given, When
-            fileLogAppender.info(mockLogEntryInstance);
+            fileLogAppender.info(testLogEntry);
             await flushPromise();
 
             // Then
@@ -141,7 +138,7 @@ describe('FileLogAppender', () => {
 
         test('should write error message to debug console when writing warn message to file failed', async () => {
             // Given, When
-            fileLogAppender.warn(mockLogEntryInstance);
+            fileLogAppender.warn(testLogEntry);
             await flushPromise();
 
             // Then
@@ -153,7 +150,7 @@ describe('FileLogAppender', () => {
 
         test('should write error message to debug console when writing error message to file failed', async () => {
             // Given, When
-            fileLogAppender.error(mockLogEntryInstance);
+            fileLogAppender.error(testLogEntry);
             await flushPromise();
 
             // Then
