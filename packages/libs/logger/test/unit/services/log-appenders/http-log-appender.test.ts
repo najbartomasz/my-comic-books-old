@@ -71,16 +71,15 @@ describe('HttpLogAppender', () => {
         let mockConsoleLogAppenderInstance: ConsoleLogAppender;
 
         beforeEach(() => {
+            when(mockPost).calledWith(testUri, testLogEntry).mockRejectedValueOnce(testError);
+
             mockConsoleLogAppenderInstance = mock<ConsoleLogAppender>();
 
             httpLogAppender = new HttpLogAppender(testUri, mockPost, mockConsoleLogAppenderInstance);
         });
 
         test('should print error message to debug console when sending info log failed', async () => {
-            // Given
-            when(mockPost).calledWith(testUri, testLogEntry).mockRejectedValueOnce(testError);
-
-            // When
+            // Given, When
             httpLogAppender.info(testLogEntry);
             await flushPromise();
 
@@ -91,10 +90,7 @@ describe('HttpLogAppender', () => {
         });
 
         test('should print error message to debug console when sending warn log failed', async () => {
-            // Given
-            when(mockPost).calledWith(testUri, testLogEntry).mockRejectedValueOnce(testError);
-
-            // When
+            // Given, When
             httpLogAppender.warn(testLogEntry);
             await flushPromise();
 
@@ -105,10 +101,7 @@ describe('HttpLogAppender', () => {
         });
 
         test('should print error message to debug console when sending error log failed', async () => {
-            // Given
-            when(mockPost).calledWith(testUri, testLogEntry).mockRejectedValueOnce(testError);
-
-            // When
+            // Given, When
             httpLogAppender.error(testLogEntry);
             await flushPromise();
 

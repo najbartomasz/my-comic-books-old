@@ -26,20 +26,7 @@ jest.mock('fs/promises');
 describe('LoggerFactory', () => {
     const testName: string = 'TestLogger';
 
-    let mockLogger: jest.MockedObject<typeof Logger>;
-    let mockLoggerInstance: Logger;
-    let mockConsoleLogAppender: jest.MockedObject<typeof ConsoleLogAppender>;
-    let mockConsoleLogAppenderInstance: ConsoleLogAppender;
-
     let loggerFactory: LoggerFactory;
-
-    beforeEach(() => {
-        mockConsoleLogAppender = jest.mocked(ConsoleLogAppender);
-        mockConsoleLogAppenderInstance = mock<ConsoleLogAppender>();
-
-        mockLogger = jest.mocked(Logger);
-        mockLoggerInstance = mock<Logger>();
-    });
 
     describe('when options are not defined', () => {
         test('should throw error', () => {
@@ -57,20 +44,26 @@ describe('LoggerFactory', () => {
         const testFilePath: string = '/test/file/path';
         const testUrl: string = 'http://my-logging-service.com';
 
+        let mockLogger: jest.MockedObject<typeof Logger>;
+        let mockLoggerInstance: Logger;
+        let mockConsoleLogAppender: jest.MockedObject<typeof ConsoleLogAppender>;
+        let mockConsoleLogAppenderInstance: ConsoleLogAppender;
         let mockFileLogAppender: jest.MockedObject<typeof FileLogAppender>;
         let mockFileLogAppenderInstance: FileLogAppender;
-
-        let mockPostFunction: jest.Mock;
         let mockHttpLogAppender: jest.MockedObject<typeof HttpLogAppender>;
         let mockHttpLogAppenderInstance: HttpLogAppender;
+        let mockPostFunction: jest.Mock;
 
         beforeEach(() => {
+            mockLogger = jest.mocked(Logger);
+            mockLoggerInstance = mock<Logger>();
+            mockConsoleLogAppender = jest.mocked(ConsoleLogAppender);
+            mockConsoleLogAppenderInstance = mock<ConsoleLogAppender>();
             mockFileLogAppender = jest.mocked(FileLogAppender);
             mockFileLogAppenderInstance = mock<FileLogAppender>();
-
-            mockPostFunction = jest.fn();
             mockHttpLogAppender = jest.mocked(HttpLogAppender);
             mockHttpLogAppenderInstance = mock<HttpLogAppender>();
+            mockPostFunction = jest.fn();
         });
 
         test('should return logger instance with json console log appender', () => {
@@ -113,8 +106,7 @@ describe('LoggerFactory', () => {
             // Given
             when(mockFileLogAppender).calledWith(testFilePath, toPrettyLogMessage, writeFile, undefined)
                 .mockReturnValueOnce(mockFileLogAppenderInstance);
-            when(mockLogger).calledWith(testName, [ mockFileLogAppenderInstance ])
-                .mockReturnValueOnce(mockLoggerInstance);
+            when(mockLogger).calledWith(testName, [ mockFileLogAppenderInstance ]).mockReturnValueOnce(mockLoggerInstance);
 
             const testLoggerOptions: LoggerOptions = {
                 file: {
@@ -133,10 +125,8 @@ describe('LoggerFactory', () => {
 
         test('should return logger instance with http log appender', () => {
             // Given
-            when(mockHttpLogAppender).calledWith(testUrl, mockPostFunction, undefined)
-                .mockReturnValueOnce(mockHttpLogAppenderInstance);
-            when(mockLogger).calledWith(testName, [ mockHttpLogAppenderInstance ])
-                .mockReturnValueOnce(mockLoggerInstance);
+            when(mockHttpLogAppender).calledWith(testUrl, mockPostFunction, undefined).mockReturnValueOnce(mockHttpLogAppenderInstance);
+            when(mockLogger).calledWith(testName, [ mockHttpLogAppenderInstance ]).mockReturnValueOnce(mockLoggerInstance);
 
             const testLoggerOptions: LoggerOptions = {
                 http: {

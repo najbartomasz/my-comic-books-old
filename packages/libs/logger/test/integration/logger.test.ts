@@ -1,3 +1,4 @@
+/* eslint-disable jest/expect-expect */
 import { when } from 'jest-when';
 
 import { writeFile } from 'fs/promises';
@@ -7,6 +8,24 @@ import type { Logger, LoggerConsoleOptions, LoggerFileOptions, LoggerHttpOptions
 import { LogEntryFormat, LoggerFactory } from '../../src';
 
 jest.mock('fs/promises');
+
+// eslint-disable-next-line max-params
+const toString = (timestamp: string, logLevel: string, loggerName: string, message: string, error?: string): string => {
+    let stringMessage: string = `${timestamp} ${logLevel} ${loggerName}: ${message}`;
+    if (error !== undefined) {
+        stringMessage += ` ${error}`;
+    }
+
+    return stringMessage;
+};
+
+// eslint-disable-next-line max-params
+const toJsonStringify = (timestamp: string, logLevel: string, loggerName: string, message: string, error?: Error | string): string =>
+    JSON.stringify({ timestamp, logLevel, loggerName, message, error });
+
+// eslint-disable-next-line max-params
+const toObject = (timestamp: string, logLevel: string, loggerName: string, message: string, error?: Error | string): object =>
+    ({ timestamp, logLevel, loggerName, message, error });
 
 describe('Logger', () => {
     const testTimestamp1: string = '1987-08-20T03:20:15.127Z';
@@ -21,9 +40,55 @@ describe('Logger', () => {
     const logLevelWarn: string = 'WARN';
     const logLevelError: string = 'ERROR';
 
+    const testFilePath: string = '/test/file/path';
+
+    const testUrl: string = 'http://my-logging-service.com';
+
+    const infoMessage1: string = 'Package initializing.';
+    const infoMessage2: string = 'Everything went well. Enjoy!';
+    const infoMessage3: string = 'Recovered. Up and running.';
+    const warnMessage1: string = 'Failed. Making another attempt...';
+    const errorMessage1: string = 'Unknown error while reading file.';
+    const errorMessage2: string = 'Something bad happened.';
+    const error2: Error = new Error('error');
+    const stack2: string = 'error stack';
+    error2.stack = stack2;
+    const errorMessage3: string = 'Complete disaster.';
+    const error3: string = 'fatal';
+
+    const logger1Name: string = 'TestLogger1';
+    const logger2Name: string = 'TestLogger2';
+    const logger3Name: string = 'TestLogger3';
+
+    let testLoggerConsoleOptions: LoggerConsoleOptions;
+    let testLoggerFileOptions: LoggerFileOptions;
+    let testLoggerHttpOptions: LoggerHttpOptions;
+    let testLoggertOtions: LoggerOptions;
+
     let consoleInfoSpy: jest.SpyInstance;
     let consoleWarnSpy: jest.SpyInstance;
     let consoleErrorSpy: jest.SpyInstance;
+    let mockPostFunction: jest.Mock;
+
+    const verifyConsoleInfoNthCalledWith = (nthCall: number, message: string): void => {
+        expect(consoleInfoSpy).toHaveBeenNthCalledWith(nthCall, message);
+    };
+
+    const verifyConsoleWarnNthCalledWith = (nthCall: number, message: string): void => {
+        expect(consoleWarnSpy).toHaveBeenNthCalledWith(nthCall, message);
+    };
+
+    const verifyConsoleErrorNthCalledWith = (nthCall: number, message: string): void => {
+        expect(consoleErrorSpy).toHaveBeenNthCalledWith(nthCall, message);
+    };
+
+    const verifyWriteFileNthCalledWith = (nthCall: number, filePath: string, message: string): void => {
+        expect(writeFile).toHaveBeenNthCalledWith(nthCall, filePath, message);
+    };
+
+    const verifyPostNthCalledWith = (nthCall: number, url: string, message: object): void => {
+        expect(mockPostFunction).toHaveBeenNthCalledWith(nthCall, url, message);
+    };
 
     beforeEach(() => {
         const OriginalDate: DateConstructor = global.Date;
@@ -46,49 +111,36 @@ describe('Logger', () => {
         consoleInfoSpy = jest.spyOn(console, 'info').mockImplementation();
         consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation();
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
+
+        mockPostFunction = jest.fn();
+        when(mockPostFunction).calledWith(testUrl, expect.anything()).mockResolvedValue(undefined);
+
+        when(writeFile).calledWith(testFilePath, expect.any(String) as string).mockResolvedValue(undefined);
+
+        testLoggerConsoleOptions = {
+            outputFormat: LogEntryFormat.Pretty
+        };
+        testLoggerFileOptions = {
+            filePath: testFilePath,
+            logEntryFormat: LogEntryFormat.Json
+        };
+        testLoggerHttpOptions = {
+            url: testUrl,
+            postFunction: mockPostFunction
+        };
+        testLoggertOtions = {
+            console: testLoggerConsoleOptions,
+            file: testLoggerFileOptions,
+            http: testLoggerHttpOptions
+        };
     });
 
     test('should print json pretty to debug console, write stringified json to file send it over http', () => {
         // Given
-        const console: LoggerConsoleOptions = {
-            outputFormat: LogEntryFormat.Pretty
-        };
-        const testFilePath: string = '/test/file/path';
-        const file: LoggerFileOptions = {
-            filePath: testFilePath,
-            logEntryFormat: LogEntryFormat.Json
-        };
-        const testUrl: string = 'http://my-logging-service.com';
-        const mockPostFunction: jest.Mock = jest.fn();
-        when(mockPostFunction).calledWith(testUrl, expect.anything()).mockResolvedValue(undefined);
-        when(writeFile).calledWith(testFilePath, expect.any(String) as string).mockResolvedValue(undefined);
-        const http: LoggerHttpOptions = {
-            url: testUrl,
-            postFunction: mockPostFunction
-        };
-        const options: LoggerOptions = {
-            console,
-            file,
-            http
-        };
-        const loggerFactory: LoggerFactory = new LoggerFactory(options);
-        const logger1Name: string = 'TestLogger1';
+        const loggerFactory: LoggerFactory = new LoggerFactory(testLoggertOtions);
         const logger1: Logger = loggerFactory.createLogger(logger1Name);
-        const logger2Name: string = 'TestLogger2';
         const logger2: Logger = loggerFactory.createLogger(logger2Name);
-        const logger3Name: string = 'TestLogger3';
         const logger3: Logger = loggerFactory.createLogger(logger3Name);
-        const infoMessage1: string = 'Package initializing.';
-        const infoMessage2: string = 'Everything went well. Enjoy!';
-        const infoMessage3: string = 'Recovered. Up and running.';
-        const warnMessage1: string = 'Failed. Making another attempt...';
-        const errorMessage1: string = 'Unknown error while reading file.';
-        const errorMessage2: string = 'Something bad happened.';
-        const error2: Error = new Error('error');
-        const stack2: string = 'error stack';
-        error2.stack = stack2;
-        const errorMessage3: string = 'Complete disaster.';
-        const error3: string = 'fatal';
 
         // When
         logger1.info(infoMessage1);
@@ -100,65 +152,32 @@ describe('Logger', () => {
         logger3.error(errorMessage3, error3);
 
         // Then
-        expect(consoleInfoSpy).toHaveBeenCalledTimes(3);
-        expect(consoleWarnSpy).toHaveBeenCalledTimes(1);
-        expect(consoleErrorSpy).toHaveBeenCalledTimes(3);
-        expect(writeFile).toHaveBeenCalledTimes(7);
-        expect(mockPostFunction).toHaveBeenCalledTimes(7);
+        verifyConsoleInfoNthCalledWith(1, toString(testTimestamp1, logLevelInfo, logger1Name, infoMessage1));
+        verifyWriteFileNthCalledWith(1, testFilePath, toJsonStringify(testTimestamp1, logLevelInfo, logger1Name, infoMessage1));
+        verifyPostNthCalledWith(1, testUrl, toObject(testTimestamp1, logLevelInfo, logger1Name, infoMessage1));
 
-        expect(consoleInfoSpy).toHaveBeenNthCalledWith(1, `${testTimestamp1} ${logLevelInfo} ${logger1Name}: ${infoMessage1}`);
-        expect(writeFile).toHaveBeenNthCalledWith(1,
-            testFilePath,
-            JSON.stringify({ timestamp: testTimestamp1, logLevel: logLevelInfo, loggerName: logger1Name, message: infoMessage1 }));
-        expect(mockPostFunction).toHaveBeenNthCalledWith(1,
-            testUrl, { timestamp: testTimestamp1, logLevel: logLevelInfo, loggerName: logger1Name, message: infoMessage1 });
+        verifyConsoleWarnNthCalledWith(1, toString(testTimestamp2, logLevelWarn, logger2Name, warnMessage1));
+        verifyWriteFileNthCalledWith(2, testFilePath, toJsonStringify(testTimestamp2, logLevelWarn, logger2Name, warnMessage1));
+        verifyPostNthCalledWith(2, testUrl, toObject(testTimestamp2, logLevelWarn, logger2Name, warnMessage1));
 
-        expect(consoleWarnSpy).toHaveBeenNthCalledWith(1, `${testTimestamp2} ${logLevelWarn} ${logger2Name}: ${warnMessage1}`);
-        expect(mockPostFunction).toHaveBeenNthCalledWith(2,
-            testUrl, { timestamp: testTimestamp2, logLevel: logLevelWarn, loggerName: logger2Name, message: warnMessage1 });
-        expect(writeFile).toHaveBeenNthCalledWith(2,
-            testFilePath,
-            JSON.stringify({ timestamp: testTimestamp2, logLevel: logLevelWarn, loggerName: logger2Name, message: warnMessage1 }));
+        verifyConsoleErrorNthCalledWith(1, toString(testTimestamp3, logLevelError, logger3Name, errorMessage1));
+        verifyWriteFileNthCalledWith(3, testFilePath, toJsonStringify(testTimestamp3, logLevelError, logger3Name, errorMessage1));
+        verifyPostNthCalledWith(3, testUrl, toObject(testTimestamp3, logLevelError, logger3Name, errorMessage1));
 
-        expect(consoleErrorSpy).toHaveBeenNthCalledWith(1, `${testTimestamp3} ${logLevelError} ${logger3Name}: ${errorMessage1}`);
-        expect(mockPostFunction).toHaveBeenNthCalledWith(3,
-            testUrl, { timestamp: testTimestamp3, logLevel: logLevelError, loggerName: logger3Name, message: errorMessage1 });
-        expect(writeFile).toHaveBeenNthCalledWith(3,
-            testFilePath,
-            JSON.stringify({ timestamp: testTimestamp3, logLevel: logLevelError, loggerName: logger3Name, message: errorMessage1 }));
+        verifyConsoleInfoNthCalledWith(2, toString(testTimestamp4, logLevelInfo, logger2Name, infoMessage2));
+        verifyWriteFileNthCalledWith(4, testFilePath, toJsonStringify(testTimestamp4, logLevelInfo, logger2Name, infoMessage2));
+        verifyPostNthCalledWith(4, testUrl, toObject(testTimestamp4, logLevelInfo, logger2Name, infoMessage2));
 
-        expect(consoleInfoSpy).toHaveBeenNthCalledWith(2, `${testTimestamp4} ${logLevelInfo} ${logger2Name}: ${infoMessage2}`);
-        expect(mockPostFunction).toHaveBeenNthCalledWith(4,
-            testUrl, { timestamp: testTimestamp4, logLevel: logLevelInfo, loggerName: logger2Name, message: infoMessage2 });
-        expect(writeFile).toHaveBeenNthCalledWith(4,
-            testFilePath,
-            JSON.stringify({ timestamp: testTimestamp4, logLevel: logLevelInfo, loggerName: logger2Name, message: infoMessage2 }));
+        verifyConsoleInfoNthCalledWith(3, toString(testTimestamp5, logLevelInfo, logger3Name, infoMessage3));
+        verifyWriteFileNthCalledWith(5, testFilePath, toJsonStringify(testTimestamp5, logLevelInfo, logger3Name, infoMessage3));
+        verifyPostNthCalledWith(5, testUrl, toObject(testTimestamp5, logLevelInfo, logger3Name, infoMessage3));
 
-        expect(consoleInfoSpy).toHaveBeenNthCalledWith(3, `${testTimestamp5} ${logLevelInfo} ${logger3Name}: ${infoMessage3}`);
-        expect(mockPostFunction).toHaveBeenNthCalledWith(5,
-            testUrl, { timestamp: testTimestamp5, logLevel: logLevelInfo, loggerName: logger3Name, message: infoMessage3 });
-        expect(writeFile).toHaveBeenNthCalledWith(5,
-            testFilePath,
-            JSON.stringify({ timestamp: testTimestamp5, logLevel: logLevelInfo, loggerName: logger3Name, message: infoMessage3 }));
+        verifyConsoleErrorNthCalledWith(2, toString(testTimestamp6, logLevelError, logger1Name, errorMessage2, stack2));
+        verifyWriteFileNthCalledWith(6, testFilePath, toJsonStringify(testTimestamp6, logLevelError, logger1Name, errorMessage2, error2));
+        verifyPostNthCalledWith(6, testUrl, toObject(testTimestamp6, logLevelError, logger1Name, errorMessage2, error2));
 
-        expect(consoleErrorSpy).toHaveBeenNthCalledWith(2, `${testTimestamp6} ${logLevelError} ${logger1Name}: ${errorMessage2} ${stack2}`);
-        expect(mockPostFunction).toHaveBeenNthCalledWith(6,
-            testUrl,
-            { timestamp: testTimestamp6, logLevel: logLevelError, loggerName: logger1Name, message: errorMessage2, error: error2 });
-        expect(writeFile).toHaveBeenNthCalledWith(6,
-            testFilePath,
-            JSON.stringify(
-                { timestamp: testTimestamp6, logLevel: logLevelError, loggerName: logger1Name, message: errorMessage2, error: error2 }
-            ));
-
-        expect(consoleErrorSpy).toHaveBeenNthCalledWith(3, `${testTimestamp7} ${logLevelError} ${logger3Name}: ${errorMessage3} ${error3}`);
-        expect(mockPostFunction).toHaveBeenNthCalledWith(7,
-            testUrl,
-            { timestamp: testTimestamp7, logLevel: logLevelError, loggerName: logger3Name, message: errorMessage3, error: error3 });
-        expect(writeFile).toHaveBeenNthCalledWith(7,
-            testFilePath,
-            JSON.stringify(
-                { timestamp: testTimestamp7, logLevel: logLevelError, loggerName: logger3Name, message: errorMessage3, error: error3 }
-            ));
+        verifyConsoleErrorNthCalledWith(3, toString(testTimestamp7, logLevelError, logger3Name, errorMessage3, error3));
+        verifyWriteFileNthCalledWith(7, testFilePath, toJsonStringify(testTimestamp7, logLevelError, logger3Name, errorMessage3, error3));
+        verifyPostNthCalledWith(7, testUrl, toObject(testTimestamp7, logLevelError, logger3Name, errorMessage3, error3));
     });
 });

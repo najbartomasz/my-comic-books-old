@@ -20,13 +20,13 @@ describe('FileLogAppender', () => {
 
     beforeEach(() => {
         mockWriteFile = jest.fn();
+        mockFormatLogEntry = jest.fn();
     });
 
     describe('when formatted log entry is string', () => {
         const expectedMessage: string = 'Expected message.';
 
         beforeEach(() => {
-            mockFormatLogEntry = jest.fn();
             when(mockFormatLogEntry).calledWith(testLogEntry).mockReturnValueOnce(expectedMessage);
             when(mockWriteFile).calledWith(testFilePath, expectedMessage).mockResolvedValueOnce(undefined);
 
@@ -65,7 +65,6 @@ describe('FileLogAppender', () => {
         const expectedMessage: string = JSON.stringify(testLogEntry);
 
         beforeEach(() => {
-            mockFormatLogEntry = jest.fn();
             when(mockFormatLogEntry).calledWith(testLogEntry).mockReturnValueOnce(testLogEntry);
             when(mockWriteFile).calledWith(testFilePath, expectedMessage).mockResolvedValueOnce(undefined);
 
@@ -116,7 +115,6 @@ describe('FileLogAppender', () => {
         let mockConsoleLogAppenderInstance: ConsoleLogAppender;
 
         beforeEach(() => {
-            mockFormatLogEntry = jest.fn();
             when(mockFormatLogEntry).calledWith(testLogEntry).mockReturnValueOnce(expectedMessage);
             when(mockWriteFile).calledWith(testFilePath, expectedMessage).mockRejectedValueOnce(testError);
             mockConsoleLogAppenderInstance = mock<ConsoleLogAppender>();
