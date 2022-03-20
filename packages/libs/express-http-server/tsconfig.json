@@ -1,0 +1,6 @@
+{
+    "extends": "../../../configs/typescript/tsconfig.json",
+    "compilerOptions": {
+        "resolveJsonModule": true
+    }
+}
