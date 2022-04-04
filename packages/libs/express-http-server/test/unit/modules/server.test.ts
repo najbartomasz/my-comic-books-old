@@ -72,7 +72,7 @@ describe('createHttpServer', () => {
     test('should create http server based on express application when middewares are defined', () => {
         // Given
         testMiddlewares = [ mock<RequestHandler>() ];
-        when(createApp).calledWith([ mockCors, mockHelmet, mockJson, ...mockOpenApiValidatorMiddlewares, ...testMiddlewares ])
+        when(createApp).calledWith([ ...testMiddlewares, mockCors, mockHelmet, mockJson, ...mockOpenApiValidatorMiddlewares ])
             .mockReturnValueOnce(mockApplicationInstance);
 
         // When

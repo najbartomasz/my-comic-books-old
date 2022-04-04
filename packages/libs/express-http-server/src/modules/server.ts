@@ -14,11 +14,11 @@ import helmet from 'helmet';
 
 export const createHttpServer = (openApiValidatorOptions: OpenApiValidatorOpts, middlewares: RequestHandler[] = []): Server => {
     const app: Application = createApp([
+        ...middlewares,
         cors({ origin: '*' }), // NOSONAR
         helmet(),
         json(),
-        ...openApiValidatorMiddleware(openApiValidatorOptions),
-        ...middlewares
+        ...openApiValidatorMiddleware(openApiValidatorOptions)
     ]);
     const server: Server = createServer(app);
 
